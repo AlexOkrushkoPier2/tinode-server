@@ -38,11 +38,12 @@ type Handler struct {
 }
 
 type configType struct {
-	Enabled         bool            `json:"enabled"`
-	Credentials     json.RawMessage `json:"credentials"`
-	CredentialsFile string          `json:"credentials_file"`
-	TimeToLive      uint            `json:"time_to_live,omitempty"`
-	Android         AndroidConfig   `json:"android,omitempty"`
+	Enabled         bool             `json:"enabled"`
+	Credentials     json.RawMessage  `json:"credentials"`
+	CredentialsFile string           `json:"credentials_file"`
+	TimeToLive      uint             `json:"time_to_live,omitempty"`
+	Android         AndroidConfig    `json:"android,omitempty"`
+	Strings         LocalizedStrings `json:"strings"`
 }
 
 // Init initializes the push handler
@@ -102,7 +103,7 @@ func (Handler) Init(jsonconf string) error {
 
 func sendNotifications(rcpt *push.Receipt, config *configType) {
 	ctx := context.Background()
-	messages := PrepareNotifications(rcpt, &config.Android)
+	messages := PrepareNotifications(rcpt, config)
 	if messages == nil {
 		return
 	}

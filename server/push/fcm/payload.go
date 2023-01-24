@@ -2,6 +2,7 @@ package fcm
 
 import (
 	"errors"
+	// "fmt"
 	"log"
 	"strconv"
 	"time"
@@ -21,16 +22,26 @@ type AndroidConfig struct {
 	androidPayload
 	// Configs for specific push types.
 	Msg androidPayload `json:"msg,omitempty"`
-	Sub androidPayload `json:"msg,omitempty"`
+	// Sub androidPayload `json:"msg,omitempty"`
+}
+
+type LocalizedStrings struct {
+	Title []LocalizedString `json:"title"`
+}
+
+type LocalizedString struct {
+	Lang  string `json:"lang"`
+	Value string `json:"value"`
 }
 
 func (ac *AndroidConfig) getTitleLocKey(what string) string {
 	var title string
 	if what == push.ActMsg {
 		title = ac.Msg.TitleLocKey
-	} else if what == push.ActSub {
-		title = ac.Sub.TitleLocKey
 	}
+	//  else if what == push.ActSub {
+	// 	title = ac.Sub.TitleLocKey
+	// }
 	if title == "" {
 		title = ac.androidPayload.TitleLocKey
 	}
@@ -41,9 +52,10 @@ func (ac *AndroidConfig) getTitle(what string) string {
 	var title string
 	if what == push.ActMsg {
 		title = ac.Msg.Title
-	} else if what == push.ActSub {
-		title = ac.Sub.Title
 	}
+	// else if what == push.ActSub {
+	// 	title = ac.Sub.Title
+	// }
 	if title == "" {
 		title = ac.androidPayload.Title
 	}
@@ -54,9 +66,10 @@ func (ac *AndroidConfig) getBodyLocKey(what string) string {
 	var body string
 	if what == push.ActMsg {
 		body = ac.Msg.BodyLocKey
-	} else if what == push.ActSub {
-		body = ac.Sub.BodyLocKey
 	}
+	// else if what == push.ActSub {
+	// 	body = ac.Sub.BodyLocKey
+	// }
 	if body == "" {
 		body = ac.androidPayload.BodyLocKey
 	}
@@ -67,9 +80,10 @@ func (ac *AndroidConfig) getBody(what string) string {
 	var body string
 	if what == push.ActMsg {
 		body = ac.Msg.Body
-	} else if what == push.ActSub {
-		body = ac.Sub.Body
 	}
+	// else if what == push.ActSub {
+	// 	body = ac.Sub.Body
+	// }
 	if body == "" {
 		body = ac.androidPayload.Body
 	}
@@ -80,9 +94,10 @@ func (ac *AndroidConfig) getIcon(what string) string {
 	var icon string
 	if what == push.ActMsg {
 		icon = ac.Msg.Icon
-	} else if what == push.ActSub {
-		icon = ac.Sub.Icon
 	}
+	// else if what == push.ActSub {
+	// 	icon = ac.Sub.Icon
+	// }
 	if icon == "" {
 		icon = ac.androidPayload.Icon
 	}
@@ -93,9 +108,10 @@ func (ac *AndroidConfig) getColor(what string) string {
 	var color string
 	if what == push.ActMsg {
 		color = ac.Msg.Color
-	} else if what == push.ActSub {
-		color = ac.Sub.Color
 	}
+	// else if what == push.ActSub {
+	// 	color = ac.Sub.Color
+	// }
 	if color == "" {
 		color = ac.androidPayload.Color
 	}
@@ -106,9 +122,10 @@ func (ac *AndroidConfig) getClickAction(what string) string {
 	var clickAction string
 	if what == push.ActMsg {
 		clickAction = ac.Msg.ClickAction
-	} else if what == push.ActSub {
-		clickAction = ac.Sub.ClickAction
 	}
+	// else if what == push.ActSub {
+	// 	clickAction = ac.Sub.ClickAction
+	// }
 	if clickAction == "" {
 		clickAction = ac.androidPayload.ClickAction
 	}
@@ -182,7 +199,7 @@ func clonePayload(src map[string]string) map[string]string {
 
 // PrepareNotifications creates notification payloads ready to be posted
 // to push notification server for the provided receipt.
-func PrepareNotifications(rcpt *push.Receipt, config *AndroidConfig) []MessageData {
+func PrepareNotifications(rcpt *push.Receipt, config *configType) []MessageData {
 	data, err := payloadToData(&rcpt.Payload)
 	if err != nil {
 		log.Println("fcm push: could not parse payload;", err)
@@ -212,17 +229,17 @@ func PrepareNotifications(rcpt *push.Receipt, config *AndroidConfig) []MessageDa
 	}
 
 	var titlelc, title, bodylc, body, icon, color, clickAction string
-	if config != nil && config.Enabled {
-		titlelc = config.getTitleLocKey(rcpt.Payload.What)
-		title = config.getTitle(rcpt.Payload.What)
-		bodylc = config.getBodyLocKey(rcpt.Payload.What)
-		body = config.getBody(rcpt.Payload.What)
+	if config != nil && config.Android.Enabled {
+		titlelc = config.Android.getTitleLocKey(rcpt.Payload.What)
+		title = config.Android.getTitle(rcpt.Payload.What)
+		bodylc = config.Android.getBodyLocKey(rcpt.Payload.What)
+		body = config.Android.getBody(rcpt.Payload.What)
 		if body == "$content" {
 			body = data["content"]
 		}
-		icon = config.getIcon(rcpt.Payload.What)
-		color = config.getColor(rcpt.Payload.What)
-		clickAction = config.getClickAction(rcpt.Payload.What)
+		icon = config.Android.getIcon(rcpt.Payload.What)
+		color = config.Android.getColor(rcpt.Payload.What)
+		clickAction = config.Android.getClickAction(rcpt.Payload.What)
 	}
 
 	var messages []MessageData
@@ -269,7 +286,17 @@ func PrepareNotifications(rcpt *push.Receipt, config *AndroidConfig) []MessageDa
 					badge := rcpt.To[uid].Unread
 					// Need to duplicate these in APNS.Payload.Aps.Alert so
 					// iOS may call NotificationServiceExtension (if present).
-					title := "New message"
+					title := "New message (...)"
+
+					for _, translation := range config.Strings.Title {
+						// fmt.Printf("- %v %v==%v", translation, translation.Lang, d.Lang)
+
+						if translation.Lang == d.Lang {
+							title = translation.Value
+							break
+						}
+					}
+
 					body := userData["content"]
 					msg.APNS = &fcm.APNSConfig{
 						Payload: &fcm.APNSPayload{
