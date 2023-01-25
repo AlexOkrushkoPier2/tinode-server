@@ -2,7 +2,7 @@ package fcm
 
 import (
 	"errors"
-	// "fmt"
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -242,6 +242,8 @@ func PrepareNotifications(rcpt *push.Receipt, config *configType) []MessageData 
 		clickAction = config.Android.getClickAction(rcpt.Payload.What)
 	}
 
+	fmt.Printf("- configAndroid: %v\n", config.Android)
+
 	var messages []MessageData
 	for uid, devList := range devices {
 		userData := data
@@ -262,7 +264,7 @@ func PrepareNotifications(rcpt *push.Receipt, config *configType) []MessageData 
 					msg.Android = &fcm.AndroidConfig{
 						Priority: "high",
 					}
-					if config != nil && config.Enabled {
+					if config != nil && config.Android.Enabled {
 						// When this notification type is included and the app is not in the foreground
 						// Android won't wake up the app and won't call FirebaseMessagingService:onMessageReceived.
 						// See dicussion: https://github.com/firebase/quickstart-js/issues/71
