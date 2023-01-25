@@ -697,9 +697,9 @@ func (t *Topic) sendImmediateSubNotifications(asUid types.Uid, sreg *sessionJoin
 			t.presSingleUserOffline(uid2, status, nilPresParams, "", false)
 
 			// Also send a push notification to the other user.
-			if pushRcpt := t.pushForSub(asUid, uid2, pud2.modeWant, pud2.modeGiven, types.TimeNow()); pushRcpt != nil {
-				usersPush(pushRcpt)
-			}
+			// if pushRcpt := t.pushForSub(asUid, uid2, pud2.modeWant, pud2.modeGiven, types.TimeNow()); pushRcpt != nil {
+			// 	usersPush(pushRcpt)
+			// }
 		}
 	}
 
@@ -1437,11 +1437,11 @@ func (t *Topic) anotherUserSub(h *Hub, sess *Session, asUid, target types.Uid, s
 		// Cache user's record
 		usersRegisterUser(target, true)
 
-		// Send push notification for the new subscription.
-		if pushRcpt := t.pushForSub(asUid, target, userData.modeWant, userData.modeGiven, now); pushRcpt != nil {
-			// TODO: maybe skip user's devices which were online when this event has happened.
-			usersPush(pushRcpt)
-		}
+		// // Send push notification for the new subscription.
+		// if pushRcpt := t.pushForSub(asUid, target, userData.modeWant, userData.modeGiven, now); pushRcpt != nil {
+		// 	// TODO: maybe skip user's devices which were online when this event has happened.
+		// 	usersPush(pushRcpt)
+		// }
 	} else {
 		// Action on an existing subscription: re-invite, change existing permission, confirm/decline request.
 		oldGiven = userData.modeGiven
@@ -2752,31 +2752,31 @@ func (t *Topic) pushForData(fromUid types.Uid, data *MsgServerData) *push.Receip
 }
 
 // Prepares payload to be delivered to a mobile device as a push notification in response to a new subscription.
-func (t *Topic) pushForSub(fromUid, toUid types.Uid, want, given types.AccessMode, now time.Time) *push.Receipt {
-	// The `Topic` in the push receipt is `t.xoriginal` for group topics, `fromUid` for p2p topics,
-	// not the t.original(fromUid) because it's the topic name as seen by the recipient, not by the sender.
-	topic := t.xoriginal
-	if t.cat == types.TopicCatP2P {
-		topic = fromUid.UserId()
-	}
+// func (t *Topic) pushForSub(fromUid, toUid types.Uid, want, given types.AccessMode, now time.Time) *push.Receipt {
+// 	// The `Topic` in the push receipt is `t.xoriginal` for group topics, `fromUid` for p2p topics,
+// 	// not the t.original(fromUid) because it's the topic name as seen by the recipient, not by the sender.
+// 	topic := t.xoriginal
+// 	if t.cat == types.TopicCatP2P {
+// 		topic = fromUid.UserId()
+// 	}
 
-	// Initialize the push receipt.
-	receipt := push.Receipt{
-		To: make(map[types.Uid]push.Recipient, t.subsCount()),
-		Payload: push.Payload{
-			What:      push.ActSub,
-			Silent:    false,
-			Topic:     topic,
-			From:      fromUid.UserId(),
-			Timestamp: now,
-			SeqId:     t.lastID,
-			ModeWant:  want,
-			ModeGiven: given}}
+// 	// Initialize the push receipt.
+// 	receipt := push.Receipt{
+// 		To: make(map[types.Uid]push.Recipient, t.subsCount()),
+// 		Payload: push.Payload{
+// 			What:      push.ActSub,
+// 			Silent:    false,
+// 			Topic:     topic,
+// 			From:      fromUid.UserId(),
+// 			Timestamp: now,
+// 			SeqId:     t.lastID,
+// 			ModeWant:  want,
+// 			ModeGiven: given}}
 
-	receipt.To[toUid] = push.Recipient{}
+// 	receipt.To[toUid] = push.Recipient{}
 
-	return &receipt
-}
+// 	return &receipt
+// }
 
 // FIXME: this won't work correctly with multiplexing sessions.
 func (t *Topic) mostRecentSession() *Session {

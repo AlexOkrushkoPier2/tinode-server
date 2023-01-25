@@ -180,9 +180,6 @@ func payloadToData(pl *push.Payload) (map[string]string, error) {
 				data["content"] = string(runes[:maxMessageLength]) + "…"
 			}
 		}
-	} else if pl.What == push.ActSub {
-		data["modeWant"] = pl.ModeWant.String()
-		data["modeGiven"] = pl.ModeGiven.String()
 	} else {
 		return nil, errors.New("unknown push type")
 	}

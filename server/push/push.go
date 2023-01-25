@@ -14,7 +14,7 @@ const (
 	// New message.
 	ActMsg = "msg"
 	// New subscription.
-	ActSub = "sub"
+	// ActSub = "sub"
 )
 
 // Recipient is a user targeted by the push.
